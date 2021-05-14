@@ -20,7 +20,7 @@ class Flaex(GoslingAgent):
         op_goal_to_ball, ball_to_op_goal = (agent.ball.location - agent.foe_goal.location).normalize(True)
 
         my_goal_to_me = agent.me.location - agent.friend_goal.location
-        op_goal_to_op = agent.foes.location - agent.foe_goal.location
+        op_goal_to_op = agent.foes[0].location - agent.foe_goal.location
 
         me_to_my_goal = my_goal_to_ball.dot(my_goal_to_me)
         op_to_op_goal =  op_goal_to_ball.dot(op_goal_to_op)
@@ -36,10 +36,10 @@ class Flaex(GoslingAgent):
 
         # definitions
         me_close = (agent.me.location - agent.ball.location).magnitude() < BALL_AGRO
-        op_close = (agent.foes.location - agent.ball.location).magnitude() < BALL_AGRO
+        op_close = (agent.foes[0].location - agent.ball.location).magnitude() < BALL_AGRO
 
         me_have_boost = agent.me.boost > BOOST_AGRO
-        op_have_boost = agent.foes.boost > BOOST_AGRO
+        op_have_boost = agent.foes[0].boost > BOOST_AGRO
 
         me_onside = me_to_my_goal - OFFSIDE_AGRO > ball_to_my_goal
         op_onside = op_to_op_goal - OFFSIDE_AGRO > ball_to_op_goal
@@ -65,12 +65,13 @@ class Flaex(GoslingAgent):
                 elif len(shots["upfield"]) > 0 and abs(agent.friend_goal.location.y - agent.ball.location.y) < 8490:
                     agent.push(shots["upfield"][0])
 
+            # elif not me_onside
+
             else:
                 relative_target = agent.friend_goal.location - agent.me.location
                 angles = defaultPD(agent, agent.me.local(relative_target))
                 defaultThrottle(agent, 2300)
 
-                if abs(angles[1]) > 0.5 or agent.me.airborne:
-                    agent.controller.boost = False
-                    agent.controller.handbrake = True if abs(angles[1]) > 2.8 else False
+                agent.controller.boost = False if abs(angles[1]) > 0.5 or agent.me.airborne else agent.controller.boost
+                agent.controller.handbrake = True if abs(angles[1]) > 2.8 else False
 
